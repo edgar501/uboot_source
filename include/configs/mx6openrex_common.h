@@ -6,8 +6,8 @@
  * SPDX-License-Identifier:	GPL-2.0+
  */
 
-#ifndef __MX6QOPENREX_COMMON_CONFIG_H
-#define __MX6QOPENREX_COMMON_CONFIG_H
+#ifndef __MX6QSABRE_COMMON_CONFIG_H
+#define __MX6QSABRE_COMMON_CONFIG_H
 
 #include "mx6_common.h"
 
@@ -23,16 +23,6 @@
 
 /* MMC Configs */
 #define CONFIG_SYS_FSL_ESDHC_ADDR      0
-#define CONFIG_MMC
-#define CONFIG_CMD_MMC
-#define CONFIG_GENERIC_MMC
-#define CONFIG_BOUNCE_BUFFER
-#define CONFIG_CMD_FAT
-#define CONFIG_FAT_WRITE
-#define CONFIG_CMD_EXT2
-#define CONFIG_CMD_EXT4
-#define CONFIG_CMD_EXT4_WRITE
-#define CONFIG_DOS_PARTITION
 
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_DHCP
@@ -42,19 +32,17 @@
 #define IMX_FEC_BASE			ENET_BASE_ADDR
 #define CONFIG_FEC_XCV_TYPE		RGMII
 #define CONFIG_ETHPRIME			"FEC"
-#define CONFIG_FEC_MXC_PHYADDR		3
+#define CONFIG_FEC_MXC_PHYADDR		1
 
 #define CONFIG_PHYLIB
-#define CONFIG_PHY_MICREL
-#define CONFIG_PHY_MICREL_KSZ9031
+#define CONFIG_PHY_ATHEROS
 
 #define CONFIG_CMD_SF
 #ifdef CONFIG_CMD_SF
-#define CONFIG_SPI_FLASH_SST
-#define CONFIG_SPI_FLASH_SST26
+#define CONFIG_SPI_FLASH_STMICRO
 #define CONFIG_MXC_SPI
-#define CONFIG_SF_DEFAULT_BUS		2
-#define CONFIG_SF_DEFAULT_CS		1
+#define CONFIG_SF_DEFAULT_BUS		0
+#define CONFIG_SF_DEFAULT_CS		0
 #define CONFIG_SF_DEFAULT_SPEED		20000000
 #define CONFIG_SF_DEFAULT_MODE		SPI_MODE_0
 #endif
@@ -92,24 +80,10 @@
 #define VIDEO_ARGS_SCRIPT ""
 #endif
 
-
-/* Env settings */
-#define CONFIG_ENV_DEFAULT_UBT_FILE         "u-boot-" CONFIG_OPENREX_DEFAULT_ARCH_PREFIX "openrex" CONFIG_OPENREX_DEFAULT_ARCH_POSTFIX ".imx"
-#define CONFIG_ENV_DEFAULT_IMG_FILE         "zImage-" CONFIG_OPENREX_DEFAULT_ARCH_PREFIX "openrex" CONFIG_OPENREX_DEFAULT_ARCH_POSTFIX
-#define CONFIG_ENV_DEFAULT_FDT_FILE                   CONFIG_OPENREX_DEFAULT_ARCH_PREFIX "openrex" CONFIG_OPENREX_DEFAULT_ARCH_POSTFIX ".dtb"
-#define CONFIG_ENV_DEFAULT_SCR_FILE         "boot-"   CONFIG_OPENREX_DEFAULT_ARCH_PREFIX "openrex" CONFIG_OPENREX_DEFAULT_ARCH_POSTFIX ".scr"
-#define CONFIG_ENV_DEFAULT_ETH_ADDR         "00:0D:15:00:D1:75"
-#define CONFIG_ENV_DEFAULT_CLIENT_IP        "192.168.0.150"
-#define CONFIG_ENV_DEFAULT_SERVER_IP        "192.168.0.1"
-#define CONFIG_ENV_DEFAULT_NETMASK          "255.255.255.0"
-#define CONFIG_ENV_DEFAULT_TFTP_DIR         "imx6"
-
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	"tftp_dir=" CONFIG_ENV_DEFAULT_TFTP_DIR "\0" \
-	"tftp_dir=" CONFIG_ENV_DEFAULT_TFTP_DIR "\0" \
-	"script="   CONFIG_ENV_DEFAULT_SCR_FILE "\0" \
-	"image="    "zImage" "\0" \
-	"fdt_file=" CONFIG_ENV_DEFAULT_FDT_FILE "\0" \
+	"script=boot.scr\0" \
+	"image=zImage\0" \
+	"fdt_file=undefined\0" \
 	"fdt_addr=0x18000000\0" \
 	"boot_fdt=try\0" \
 	"ip_dyn=yes\0" \
@@ -118,84 +92,11 @@
 	"dfu_alt_info_spl=spl raw 0x400\0" \
 	"dfu_alt_info_img=u-boot raw 0x10000\0" \
 	"dfu_alt_info=spl raw 0x400\0" \
-	"fdt_high=0xffffffff\0" \
+	"fdt_high=0xffffffff\0"	  \
 	"initrd_high=0xffffffff\0" \
-	"mmcdev=0\0" \
+	"mmcdev=" __stringify(CONFIG_SYS_MMC_ENV_DEV) "\0" \
 	"mmcpart=1\0" \
 	"mmcroot=" CONFIG_MMCROOT " rootwait rw\0" \
-	"spidev=" __stringify(CONFIG_ENV_SPI_BUS) "\0" \
-	"spics=" __stringify(CONFIG_ENV_SPI_CS) "\0" \
-	"set_ethernet=" \
-		"if test ${ethaddr}; then; else " \
-			"setenv ethaddr  " CONFIG_ENV_DEFAULT_ETH_ADDR  "; " \
-		"fi; " \
-		"if test ${ipaddr}; then; else " \
-			"setenv ipaddr   " CONFIG_ENV_DEFAULT_CLIENT_IP "; " \
-		"fi; " \
-		"if test -n ${serverip}; then; else " \
-			"setenv serverip " CONFIG_ENV_DEFAULT_SERVER_IP "; " \
-		"fi; " \
-		"if test ${netmask}; then; else " \
-			"setenv netmask  " CONFIG_ENV_DEFAULT_NETMASK   "; " \
-		"fi\0" \
-	"update_set_filename=" \
-		"if test ${upd_uboot}; then; else " \
-			"setenv upd_uboot " CONFIG_ENV_DEFAULT_UBT_FILE  "; " \
-		"fi; " \
-		"if test ${upd_kernel}; then; else " \
-			"setenv upd_kernel " CONFIG_ENV_DEFAULT_IMG_FILE "; " \
-		"fi; " \
-		"if test ${upd_fdt}; then; else " \
-			"setenv upd_fdt    " CONFIG_ENV_DEFAULT_FDT_FILE "; " \
-		"fi; " \
-		"if test ${upd_script}; then; else " \
-			"setenv upd_script " CONFIG_ENV_DEFAULT_SCR_FILE "; " \
-		"fi\0" \
-	"update_uboot=" \
-		"run set_ethernet; " \
-		"run update_set_filename; " \
-		"if mmc dev ${mmcdev}; then "	\
-			"if tftp ${tftp_dir}/${upd_uboot}; then " \
-				"setexpr fw_sz ${filesize} / 0x200; " \
-				"setexpr fw_sz ${fw_sz} + 1; " \
-				"mmc write ${loadaddr} 0x2 ${fw_sz}; " \
-			"fi; "	\
-		"fi\0" \
-	"update_kernel=" \
-		"run set_ethernet; " \
-		"run update_set_filename; " \
-		"if mmc dev ${mmcdev}; then "	\
-			"if tftp ${tftp_dir}/${upd_kernel}; then " \
-				"fatwrite mmc ${mmcdev}:${mmcpart} " \
-				"${loadaddr} ${image} ${filesize}; " \
-			"fi; "	\
-		"fi\0" \
-	"update_fdt=" \
-		"run set_ethernet; " \
-		"run update_set_filename; " \
-		"if mmc dev ${mmcdev}; then "	\
-			"if tftp ${tftp_dir}/${upd_fdt}; then " \
-				"fatwrite mmc ${mmcdev}:${mmcpart} " \
-				"${loadaddr} ${fdt_file} ${filesize}; " \
-			"fi; "	\
-		"fi\0" \
-	"update_spi_uboot=" \
-		"run set_ethernet; " \
-		"run update_set_filename; " \
-		"mw.b ${loadaddr} 0xFF 0x80000; " \
-		"tftp ${tftp_dir}/${upd_uboot}; " \
-		"sf probe;sf erase 0x0 0x80000; " \
-		"sf write ${loadaddr} 0x400 0x80000 " \
-		"\0" \
-	"update_script=" \
-		"run set_ethernet; " \
-		"run update_set_filename; " \
-		"if mmc dev ${mmcdev}; then "	\
-			"if tftp ${tftp_dir}/${upd_script}; then " \
-				"fatwrite mmc ${mmcdev}:${mmcpart} " \
-				"${loadaddr} ${script} ${filesize}; " \
-			"fi; "	\
-		"fi\0" \
 	"update_sd_firmware=" \
 		"if test ${ip_dyn} = yes; then " \
 			"setenv get_cmd dhcp; " \
@@ -217,7 +118,7 @@
 	"video_args_lcd=setenv video_args $video_args " \
 		"video=mxcfb${fb}:dev=lcd,CLAA-WVGA,if=RGB666\0" \
 	"fb=0\0" \
-	"video_interfaces=hdmi\0" \
+	"video_interfaces=hdmi lvds lcd\0" \
 	"video_args_script=" \
 		"for v in ${video_interfaces}; do " \
 			"run video_args_${v}; " \
@@ -252,7 +153,6 @@
 		"root=/dev/nfs " \
 		"ip=dhcp nfsroot=${serverip}:${nfsroot},v3,tcp\0" \
 	"netboot=echo Booting from net ...; " \
-		"run set_ethernet; " \
 		"run netargs; " \
 		"if test ${ip_dyn} = yes; then " \
 			"setenv get_cmd dhcp; " \
@@ -275,10 +175,18 @@
 		"fi;\0" \
 		"findfdt="\
 			"if test $fdt_file = undefined; then " \
-				"if test $board_name = iMX6-OpenRex && test $board_rev = MX6Q; then " \
-					"setenv fdt_file imx6q-openrex.dtb; fi; " \
-				"if test $board_name = iMX6-OpenRex && test $board_rev = MX6DL; then " \
-					"setenv fdt_file imx6dl-openrex.dtb; fi; " \
+				"if test $board_name = SABREAUTO && test $board_rev = MX6QP; then " \
+					"setenv fdt_file imx6qp-sabreauto.dtb; fi; " \
+				"if test $board_name = SABREAUTO && test $board_rev = MX6Q; then " \
+					"setenv fdt_file imx6q-sabreauto.dtb; fi; " \
+				"if test $board_name = SABREAUTO && test $board_rev = MX6DL; then " \
+					"setenv fdt_file imx6dl-sabreauto.dtb; fi; " \
+				"if test $board_name = SABRESD && test $board_rev = MX6QP; then " \
+					"setenv fdt_file imx6qp-sabresd.dtb; fi; " \
+				"if test $board_name = SABRESD && test $board_rev = MX6Q; then " \
+					"setenv fdt_file imx6q-sabresd-ldo.dtb; fi; " \
+				"if test $board_name = SABRESD && test $board_rev = MX6DL; then " \
+					"setenv fdt_file imx6dl-sabresd-ldo.dtb; fi; " \
 				"if test $fdt_file = undefined; then " \
 					"echo WARNING: Could not determine dtb to use; fi; " \
 			"fi;\0" \
@@ -322,22 +230,13 @@
 /* Environment organization */
 #define CONFIG_ENV_SIZE			(8 * 1024)
 
-#define CONFIG_ENV_IS_IN_SPI_FLASH
+#define CONFIG_ENV_IS_IN_MMC
 
 #if defined(CONFIG_ENV_IS_IN_MMC)
-#define CONFIG_ENV_OFFSET		(6 * 64 * 1024)
-#define CONFIG_SYS_MMC_ENV_DEV		0
-#elif defined(CONFIG_ENV_IS_IN_SPI_FLASH)
-#define CONFIG_ENV_OFFSET		(768 * 1024)
-#define CONFIG_ENV_SECT_SIZE		(8 * 1024)
-#define CONFIG_ENV_SPI_BUS		CONFIG_SF_DEFAULT_BUS
-#define CONFIG_ENV_SPI_CS		CONFIG_SF_DEFAULT_CS
-#define CONFIG_ENV_SPI_MODE		CONFIG_SF_DEFAULT_MODE
-#define CONFIG_ENV_SPI_MAX_HZ		CONFIG_SF_DEFAULT_SPEED
+#define CONFIG_ENV_OFFSET		(8 * 64 * 1024)
 #endif
 
 /* Framebuffer */
-#if 0
 #define CONFIG_VIDEO
 #define CONFIG_VIDEO_IPUV3
 #define CONFIG_CFB_CONSOLE
@@ -353,7 +252,6 @@
 #define CONFIG_IPUV3_CLK 260000000
 #define CONFIG_IMX_HDMI
 #define CONFIG_IMX_VIDEO_SKIP
-#endif
 
 #ifndef CONFIG_SPL
 #define CONFIG_CI_UDC
@@ -383,4 +281,4 @@
 #define CONFIG_DFU_SF
 #endif
 
-#endif                         /* __MX6QOPENREX_COMMON_CONFIG_H */
+#endif                         /* __MX6QSABRE_COMMON_CONFIG_H */
